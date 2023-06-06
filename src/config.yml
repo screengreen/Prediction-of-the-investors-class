@@ -8,6 +8,6 @@ feature_engeneering: False
 to_history: True
 
 model:
-  model_name: gradientboost
+  model_name: catboost
   lr: 3e-1
   
