@@ -1,0 +1,13 @@
+
+train_path: 'data/raw data/train/train.csv'
+train_deals_path: 'data/raw data/train/train_deals'
+train_add_info_path: 'data/raw data/train/train_additional_info'
+history_file_path: "data/history/history.json"
+
+feature_engeneering: False
+to_history: True
+
+model:
+  model_name: catboost
+  lr: 3e-1
+  

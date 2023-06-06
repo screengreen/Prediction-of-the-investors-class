@@ -1,0 +1,12 @@
+{
+    "model": "catboost",
+    "model_params": {
+        "learning_rate": 1e-05
+    },
+    "metrics": {
+        "accuracy_score": 0.5816993464052288,
+        "precision_score": 0.5908201110509115,
+        "recall_score": 0.5816993464052288,
+        "f1_score": 0.5692748164090429
+    }
+}
