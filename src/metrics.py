@@ -16,10 +16,8 @@ def make_log_data(model, model_params, metrics):
 
 
 def append_to_json(data, file_name):
-    with open(file_name, "w") as f:
-            json_data = json.dumps(data, indent=4)
-            f.write(json_data)
-            f.close()
+    with open(file_name, "a") as f:
+        json.dump(data, f, indent=4)
 
 
 
