@@ -34,17 +34,22 @@ df = pd.read_csv(train_path) #reading data from csv file train data
 
 df = eda(df)
 features , target = split_features_target(df)
-features = get_from_csv_files(features, train_deals_path)
-features = get_train_deals(features, train_add_info_path)
+features = get_from_csv_files(features, train_add_info_path)
+features = get_train_deals(features, train_deals_path)
+features, all_tools_list = add_each_tool(features, train_deals_path)
+features.fillna(0, inplace=True)
 
 if options['feature_engeneering']:
     feature_engeneering(features)
+
 model_name = options['model']['model_name']
 
 X_train, X_test, y_train, y_test = split(features, target, model_name)
 
+print(X_train.shape)
+
 if model_name == 'catboost':
-    model = CatBoostClassifier(learning_rate=0.00001)
+    model = CatBoostClassifier()
 elif model_name == 'xgboost':
     model = XGBClassifier()
 elif model_name == 'gradientboost':
@@ -55,7 +60,9 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 metrics = get_metrics(y_pred, y_test)
 
-
-if options['to_history']:
-    data = make_log_data(model_name, model.get_params(), metrics)
-    append_to_json(data, options['history_file_path'])
+try:
+    if options['to_history']:
+        data = make_log_data(model_name, model.get_params(), metrics, options['random_state'])
+        append_to_json(data, options['history_file_path'])
+except:
+    print('could not add this train to history')

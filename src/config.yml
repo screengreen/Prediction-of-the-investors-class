@@ -6,8 +6,9 @@ history_file_path: "data/history/history.json"
 
 feature_engeneering: False
 to_history: True
+random_state: 50
 
 model:
-  model_name: gradientboost
+  model_name: catboost
   lr: 3e-1
   

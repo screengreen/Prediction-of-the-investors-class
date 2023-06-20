@@ -11,8 +11,8 @@ def get_metrics(y_pred, y_test):
     return {'accuracy_score': accuracy_score( y_test, y_pred), 'precision_score': precision_score(y_test, y_pred, average='weighted'), 'recall_score': recall_score(y_test, y_pred, average='weighted'), 'f1_score': f1_score(y_test, y_pred, average='weighted')}
 
 
-def make_log_data(model, model_params, metrics):
-    return {'model': model, "model_params": model_params, "metrics": metrics}
+def make_log_data(model, model_params, metrics, random_state):
+    return {'model': model, "model_params": model_params, "metrics": metrics, 'random state': random_state}
 
 
 def append_to_json(data, file_name):

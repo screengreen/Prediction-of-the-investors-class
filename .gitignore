@@ -3,3 +3,6 @@ data/raw data/
 src/__pycache__/
 catboost_info/
 models/
+.ipynb_checkpoints
+features_good.csv
+FULCON.ipynb

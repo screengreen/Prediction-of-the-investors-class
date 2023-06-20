@@ -1,11 +1,18 @@
 import os
 from io import StringIO
+import yaml
 
 from sklearn.model_selection import train_test_split
 import zipfile
 import pandas as pd
 import numpy as np
 
+#opening config file
+options_path = '/Users/andreisuhov/Desktop/проект лаба/src/config.yml'
+with open(options_path, 'r') as option_file:
+    options = yaml.safe_load(option_file)
+
+RANDOM_STATE = options['random_state']
 
 def eda(df):
     # editing data in df, making int or float data types instead of object type
@@ -24,9 +31,9 @@ def split_features_target(df):
 
 def split(features, target, mode):
     if mode == 'xgboost':
-       return train_test_split(features.values, target.values.reshape(-1,1), train_size = 0.8 , shuffle = True, random_state= 50 )
+       return train_test_split(features.values, target.values.reshape(-1,1), train_size = 0.8 , shuffle = True, random_state= RANDOM_STATE )
     else:
-        return train_test_split(features, target, train_size = 0.8 , shuffle = True, random_state= 50) #random_state = 65 (try - 56)
+        return train_test_split(features, target, train_size = 0.8 , shuffle = True, random_state= RANDOM_STATE) #random_state = 65 (try - 56)
 
 """## Вытаскием данные из других табличек"""
 def get_train_deals(features, train_deals_path):
@@ -47,7 +54,7 @@ def get_train_deals(features, train_deals_path):
                         features.loc[features['id'] == int(filename_id), ['amount_of_tools']] = len(auxiliary_df['tool'].unique()) 
 
                         #getting user's everage deals by days 
-                        features.loc[features['id'] == int(filename_id), ['everage_deals_by_day']] = auxiliary_df.groupby('date').count().mean().iloc[1]
+                        #features.loc[features['id'] == int(filename_id), ['everage_deals_by_day']] = auxiliary_df.groupby('date').count().mean().iloc[1]
 
                         #getting user's mean sum by days 
                         features.loc[features['id'] == int(filename_id), ['mean_sum_by_days']] = auxiliary_df['sum'].mean().round(2)
@@ -82,9 +89,9 @@ def get_from_csv_files(features, folder_path):
                             features.loc[features['id'] == int(filename_id), ['ration_of_stock_market']] = auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'stock_market', ['deals']].values[0][0]*100/ auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'all_markets', ['deals']].values[0][0]
                             features.loc[features['id'] == int(filename_id), ['ration_of_forts_market']] = auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'forts_market', ['deals']].values[0][0]*100/ auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'all_markets', ['deals']].values[0][0]
                             #features.loc[features['id'] == int(filename_id), ['ration_of_income_stock_market']] = auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'stock_market', ['income_rubles']].values[0][0]*100/ auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'all_markets', ['income_rubles']].values[0][0]
-                            features.loc[features['id'] == int(filename_id), ['ration_of_income_forts_market']] = auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'forts_market', ['income_rubles']].values[0][0]*100/ auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'all_markets', ['income_rubles']].values[0][0]
+                            #features.loc[features['id'] == int(filename_id), ['ration_of_income_forts_market']] = auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'forts_market', ['income_rubles']].values[0][0]*100/ auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'all_markets', ['income_rubles']].values[0][0]
                             #features.loc[features['id'] == int(filename_id), ['ration_of_turnover_stock_market']] = auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'stock_market', ['money_turnover']].values[0][0]*100/ auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'all_markets', ['money_turnover']].values[0][0]
-                            features.loc[features['id'] == int(filename_id), ['ration_of_turnover_forts_market']] = auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'forts_market', ['money_turnover']].values[0][0]*100/ auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'all_markets', ['money_turnover']].values[0][0]
+                            #features.loc[features['id'] == int(filename_id), ['ration_of_turnover_forts_market']] = auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'forts_market', ['money_turnover']].values[0][0]*100/ auxiliary_df.loc[ auxiliary_df['Unnamed: 0'] == 'all_markets', ['money_turnover']].values[0][0]
                             
                         #work with stats table file
                         if 'account_condition' in file:
@@ -102,6 +109,49 @@ def get_from_csv_files(features, folder_path):
                             features.loc[features['id'] == int(filename_id), ['average_end_day_balance']] = auxiliary_df['end_day_balance'].diff().mean()
 
     return features
+
+
+def add_each_tool(features, train_deals_path):
+
+    def get_all_tools_list(features, train_deals_path):
+        alltools_list = np.array([])
+        for filename in os.listdir(train_deals_path):
+            if filename.endswith('.zip'): #take only zip files
+                with zipfile.ZipFile(os.path.join(train_deals_path, filename), 'r') as zip_ref: 
+                    for file in zip_ref.namelist():
+                        with zip_ref.open(file) as f_in:#opening and reading files
+                            file_content = f_in.read().decode('utf-8') #reading file's content 
+                            content = StringIO(file_content) #making it csv file, so we can read it with "read_csv"
+                            auxiliary_df = pd.read_csv(content, sep=";", names=['time','tool','quantity','sum'])
+                            alltools_list = np.concatenate((alltools_list,  auxiliary_df[auxiliary_df['tool'].str.len() <= 5]['tool'].unique()))
+        return  np.unique(alltools_list)
+    
+    def change_tools_columns(features, train_deals_path):
+        
+        for filename in os.listdir(train_deals_path):
+            filename_id = filename[2:-4] # getting user id from folder's name
+            if filename.endswith('.zip'): #take only zip files
+                with zipfile.ZipFile(os.path.join(train_deals_path, filename), 'r') as zip_ref: 
+                    for file in zip_ref.namelist():
+                        with zip_ref.open(file) as f_in:#opening and reading files
+                            file_content = f_in.read().decode('utf-8') #reading file's content 
+                            content = StringIO(file_content) #making it csv file, so we can read it with "read_csv"
+                            auxiliary_df = pd.read_csv(content, sep=";", names=['time','tool','quantity','sum'])
+
+                            columns_to_modify = list(auxiliary_df[auxiliary_df['tool'].str.len() <= 5]['tool'].unique())
+                            
+                            features.loc[features['id'] == int(filename_id), columns_to_modify] = 1                    
+
+        return features
+
+    alltools_list = get_all_tools_list(features, train_deals_path)
+
+    for col in alltools_list:
+        features[col] = 0
+
+    return change_tools_columns(features, train_deals_path), alltools_list
+    
+
                             
                         
 
