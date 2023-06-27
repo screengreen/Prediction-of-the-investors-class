@@ -10,5 +10,3 @@ random_state: 50
 
 model:
   model_name: catboost
-  lr: 3e-1
-  
