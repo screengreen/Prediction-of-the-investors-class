@@ -5,7 +5,7 @@ train_add_info_path: 'data/raw data/train/train_additional_info'
 history_file_path: "data/history/history.json"
 
 feature_engeneering: False
-to_history: True
+to_history: False
 random_state: 50
 
 model:

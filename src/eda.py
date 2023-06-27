@@ -23,17 +23,42 @@ def eda(df):
 
     return df
 
+def add_from_LSTM(features):
+    
+    final_list = []
+    predected_lables = pd.read_csv('Final_final.csv')
+    predected_lables['prediction_of_lstm'] = predected_lables['prediction_of_lstm'] + 1
+    
+    def search_by_id(features, id):
+        # filter the dataframe to retain only the rows where the 'id' column matches the given id
+        result = features[features.iloc[:, 0] == id]
+        # return the first (and hopefully only) row of the filtered dataframe
+        return result.iloc[0]['prediction_of_lstm'] if len(result) > 0 else 0
+    
+    for  index, row in features.iterrows():
+        final_list.append(search_by_id(predected_lables, row['id']))
+            
+    features['prediction_of_lstm'] = final_list
+    
+    return features
+
 def split_features_target(df):
     #spliting df into features and target values 
     features, target = df[['id','start_sum',"request","deals","income_rub","income_percent"]], df["class"]
     return features, target
 
+def return_without_id(df):
+    return df.drop('id', axis=1)
+
 
 def split(features, target, mode):
-    if mode == 'xgboost':
-       return train_test_split(features.values, target.values.reshape(-1,1), train_size = 0.8 , shuffle = True, random_state= RANDOM_STATE )
-    else:
-        return train_test_split(features, target, train_size = 0.8 , shuffle = True, random_state= RANDOM_STATE) #random_state = 65 (try - 56)
+    return train_test_split(features, target, test_size=368, shuffle=False)
+
+
+    #if mode == 'xgboost':
+    #   return train_test_split(features.values, target.values.reshape(-1,1), train_size = 0.8 , shuffle = True, random_state= RANDOM_STATE )
+    #else:
+    #    return train_test_split(features, target, train_size = 0.8 , shuffle = True, random_state= RANDOM_STATE) #random_state = 65 (try - 56)
 
 """## Вытаскием данные из других табличек"""
 def get_train_deals(features, train_deals_path):

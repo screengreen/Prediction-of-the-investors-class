@@ -34,10 +34,14 @@ df = pd.read_csv(train_path) #reading data from csv file train data
 
 df = eda(df)
 features , target = split_features_target(df)
+features = add_from_LSTM(features)
 features = get_from_csv_files(features, train_add_info_path)
 features = get_train_deals(features, train_deals_path)
 features, all_tools_list = add_each_tool(features, train_deals_path)
 features.fillna(0, inplace=True)
+features = return_without_id(features)
+
+
 
 if options['feature_engeneering']:
     feature_engeneering(features)
